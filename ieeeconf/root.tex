@@ -63,11 +63,11 @@ An agile biped robot capable of walking and running over rough terrain has a wid
 
 \section{MOTIVATION}
 
-A QP Controller uses the ZMP stability criteria. There is debate in the robotics community about whether or not the ZMP stability criteria will work for a point footed-biped, since there is no support polygon. We aim to prove that the ZMP stability criteria is an effective model of a point-footed biped by developing a QP controller for ATRIAS, which will enable it to execute walking trajectories over flat terrain.
+A Quadrtic Program (QP) Controller uses the Zero Moment Point (ZMP) stability criterion. There is debate in the robotics community about whether or not the ZMP stability criterion will work for a point footed-biped, since there is no support polygon. We aim to prove that the ZMP stability criterion is an valid for a point-footed biped by developing a QP controller for ATRIAS, which will enable it to execute walking trajectories over flat terrain.
 
 For our project, we chose to test the efficacy of a QP controller on the ATRIAS biped, a point-footed robot that is highly articulated enough to merit such a sophisticated control system. We chose ATRIAS due both to its similarities to Atlas --- as they are both bipeds with a sophisticated, non-flat-footed gait --- and because we had access to the existing URDF files to describe the robot.
 
-\section{RESOURCES \& EXISTING WORK}
+\section{PREVIOUS WORK}
 
    \begin{figure}[thpb]
       \centering
@@ -78,8 +78,9 @@ For our project, we chose to test the efficacy of a QP controller on the ATRIAS 
 
 \subsection{The ATRIAS Biped}
 
-The ATRIAS biped --- short for “assume the robot is a sphere,” a design paradigm used by creator Jonathan Hurst --- represents the third iteration, following several monopods, of the ATRIAS series of robots developed at Oregon State University. The series was designed for walking and running over uneven, unpredictable terrain while maintaining a reasonably economy of energy. \cite{site1} Although most of the published successes in control systems restrict ATRIAS to operating on a boom, the ATRIAS biped is designed to ultimately walk and run untethered. Under University of Michigan Professor Jessy Grizzle, researchers are currently working toward this goal on MARLO, an iteration of ATRIAS with prosthetic feet. MARLO has successfully taken steps, both in the lab and outdoors, while tethered to a gantry. \cite{site2}
+The ATRIAS biped --- short for “Assume The Robot Is A Sphere,” a design paradigm used by creator Jonathan Hurst --- represents the third iteration, following several monopods, of the ATRIAS series of robots developed at Oregon State University. The series was designed for walking and running over uneven, unpredictable terrain while maintaining a reasonably economy of energy. \cite{site1} Although most of the published successes in control systems restrict ATRIAS to operating on a boom, the ATRIAS biped is designed to ultimately walk and run untethered. Under University of Michigan Professor Jessy Grizzle, researchers are currently working toward this goal on MARLO, an iteration of ATRIAS with prosthetic feet. MARLO has successfully taken steps, both in the lab and outdoors, while tethered to a gantry. \cite{site2}
 
+The ATRIAS robot has 6 actuators and 13 degrees of freedom. It is designed as a Spring Mass Loaded Inverted Pendulum (SLIP).
 For our project, we made use of several URDF files of ATRIAS created by Professor Grizzle when he visited MIT. As discussed below, we made extensive modifications to these files, including the removal of several linkages and the addition of actuators.
 
 \subsection{Previous Approaches}
