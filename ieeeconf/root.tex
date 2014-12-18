@@ -17,7 +17,7 @@
 % The following packages can be found on http:\\www.ctan.org
 \usepackage{graphicx} % for pdf, bitmapped graphics files
 \usepackage{subcaption}
-%\usepackage{epsfig} % for postscript graphics files
+% \usepackage{epsfig} % for postscript graphics files
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
 %\usepackage{amsmath} % assumes amsmath package installed
@@ -78,13 +78,13 @@ For our project, we chose to test the efficacy of a QP controller on the ATRIAS 
 
 \subsection{The ATRIAS Biped}
 
-The ATRIAS biped --- short for “assume the robot is a sphere,” a design paradigm used by creator Jonathan Hurst --- represents the third iteration, following several monopods, of the ATRIAS series of robots developed at Oregon State University. The series was designed for walking and running over uneven, unpredictable terrain while maintaining a reasonably economy of energy. [CITATION] Although most of the published successes in control systems restrict ATRIAS to operating on a boom, the ATRIAS biped is designed to ultimately walk and run untethered. Under University of Michigan Professor Jessy Grizzle, researchers are currently working toward this goal on MARLO, an iteration of ATRIAS with prosthetic feet. MARLO has successfully taken steps, both in the lab and outdoors, while tethered to a gantry. [CITATION]
+The ATRIAS biped --- short for “assume the robot is a sphere,” a design paradigm used by creator Jonathan Hurst --- represents the third iteration, following several monopods, of the ATRIAS series of robots developed at Oregon State University. The series was designed for walking and running over uneven, unpredictable terrain while maintaining a reasonably economy of energy. \cite{site1} Although most of the published successes in control systems restrict ATRIAS to operating on a boom, the ATRIAS biped is designed to ultimately walk and run untethered. Under University of Michigan Professor Jessy Grizzle, researchers are currently working toward this goal on MARLO, an iteration of ATRIAS with prosthetic feet. MARLO has successfully taken steps, both in the lab and outdoors, while tethered to a gantry. \cite{site2}
 
 For our project, we made use of several URDF files of ATRIAS created by Professor Grizzle when he visited MIT. As discussed below, we made extensive modifications to these files, including the removal of several linkages and the addition of actuators.
 
 \subsection{Previous Approaches}
 
-Researchers at Carnegie Mellon developed a controller for ATRIAS using a spring-mass model (SMM). SMM was chosen to describe ATRIAS's locomotion dynamics because it is a good approximation for the center of mass dynamics of human running. [CITATION]
+Researchers at Carnegie Mellon developed a controller for ATRIAS using a spring-mass model (SMM). SMM was chosen to describe ATRIAS's locomotion dynamics because it is a good approximation for the center of mass dynamics of human running. \cite{hereid14}
 
   \begin{figure*}[tbp]
   \centering
@@ -99,7 +99,7 @@ Researchers at Carnegie Mellon developed a controller for ATRIAS using a spring-
 
 \subsection{Drake's Atlas Controller}
 
-The MIT Robot Locomotion Group (RLG) has developed a whole body motion planner for Atlas, a humanoid robot designed by Boston Dynamics. ​Instead of using ​the position of the ​ZMP as ​the stability criterion, ​the planner considers the centroidal dynamics of the robot, which is the way the center of mass and angular momentum change over time. The new criterion holds for a broader group of motions than ZMP, including motions with out of plane contacts and motions with flight phases (i.e. running). It characterizes full-body motions by a single quantity --- the robot’s momenta. The current whole body motion planner has enabled Atlas to run in simulation, but only when the actuator limits of the robot are removed. [CITATION Dai, 2014] RLG also developed a Quadratic Program (QP) controller for Atlas, which computes the optimal torques for each joint at each time step given the COM trajectory produced by the whole body motion planner. [CITATION]
+The MIT Robot Locomotion Group (RLG) has developed a whole body motion planner for Atlas, a humanoid robot designed by Boston Dynamics. ​Instead of using ​the position of the ​ZMP as ​the stability criterion, ​the planner considers the centroidal dynamics of the robot, which is the way the center of mass and angular momentum change over time. The new criterion holds for a broader group of motions than ZMP, including motions with out of plane contacts and motions with flight phases (i.e. running). It characterizes full-body motions by a single quantity --- the robot’s momenta. The current whole body motion planner has enabled Atlas to run in simulation, but only when the actuator limits of the robot are removed. \cite{dai14} RLG also developed a Quadratic Program (QP) controller for Atlas, which computes the optimal torques for each joint at each time step given the COM trajectory produced by the whole body motion planner. \cite{kuindersma13}
 
 The QP controller is a whole-body controller that uses a convex quadratic program. It solves an optimal control problem while maintaining input, contact, no-slip, and dynamic constraints. As previously stated, maintaining the ZMP ensures dynamic stability. Given the ZMP trajectory, the time-varying LQR yields the optimal cost-to-go for a simplified model. This function is then passed to the quadratic program which solves for all torque inputs for the robot dynamics.
 
@@ -109,6 +109,7 @@ In creating a control system for ATRIAS, we drew heavily on the ATLAS controller
 
 \subsection{Pipeline}
 
+<<<<<<< HEAD
    % \begin{figure}[b]
    %    \centering
    %    \includegraphics[scale=0.4]{figures/6_832blockdiagram.jpg}
@@ -117,10 +118,13 @@ In creating a control system for ATRIAS, we drew heavily on the ATLAS controller
    % \end{figure}
 
 We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory.
+=======
+We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory. \cite{dai14}\cite{deits14}
+>>>>>>> b27cc05648d448ba095718b2d931f4058a2c4fff
 
 \subsection{The QP Controller}
 
-In calculating the joint torques, we use the QP formulation used to control Atlas in Drake and documented in [CITATION]. At each time step, we solve the quadratic program by minimizing objective function
+In calculating the joint torques, we use the QP formulation used to control Atlas in Drake and documented in \cite{c1}. At each time step, we solve the quadratic program by minimizing objective function
 
 $$
 V(\bar{\mathbf{x}},\bar{\mathbf{u}},t) + w_{\ddot{\mathbf{q}}} \Vert \ddot{\mathbf{q}}_{des} - \ddot{\mathbf{q}} \Vert ^ 2 + \epsilon \sum\nolimits_{ij} \beta_{ij} ^ 2 + \Vert \eta \Vert ^ 2  \eqno{(1)}
@@ -147,7 +151,7 @@ $$
 \eta \in [\tau_{min}, \tau_{max}] \eqno{(7)}
 $$
 
-These constraints ensure that the dynamics and input limits (2 and 4), no-slip contact constraints (3), and contact force constraints (5 and 6) are respected. A more complete discussion of this formulation and the symbols used can be found in [CITATION].
+These constraints ensure that the dynamics and input limits (2 and 4), no-slip contact constraints (3), and contact force constraints (5 and 6) are respected. A more complete discussion of this formulation and the symbols used can be found in \cite{kuindersma13}.
 
 \subsection{Testing Efficacy on Point-Footed Robot}
 
@@ -265,15 +269,25 @@ We would like to thank visiting Professor Jessy Grizzle for the ATRIAS URDF file
 
 \begin{thebibliography}{99}
 
-\bibitem{c1} Russ Tedrake, ÒDrake: A planning, control, and analysis toolbox for nonlinear dynamical systems,Ó 	2014, http://drake.mit.edu.
+\bibitem{site1} ATRIAS 2.1 Biped. (2012) [Online]. Available: http://mime.oregonstate.edu/research/drl/robots/atrias_2_1/. 
 
-\bibitem{c2} S. Kuindersma, F. Permenter, and R. Tedrake, ÒAn efficiently solvable quadratic program for stabilizing dynamic locomotion,Ó in Robotics and Automation, 2013. ICRA ’13. IEEE International Conference on, 2013.
+\bibitem{site2} Moore, Nicole. Two-legged robot walks outside at U-M. (2013, Dec. 3) [Online]. Available: http://www.engin.umich.edu/college/about/news/stories/2013/december/two-legged-robot-walks-outside-at-u-michigan. 
 
-%\bibitem{c3} G. O. Young, ÒSynthetic structure of industrial plastics (Book style with paper title and editor),Ó  in Plastics, 2nd ed. vol. 3, J. Peters, Ed.  New York: McGraw-Hill, 1964, pp. 15Ð64.
+\bibitem{c1} Russ Tedrake, ÒDrake: A planning, control, and analysis toolbox for nonlinear dynamical systems,Ó  2014, http://drake.mit.edu.
+
+\bibitem{kuindersma13} S. Kuindersma, F. Permenter, and R. Tedrake, ÒAn efficiently solvable quadratic program for stabilizing dynamic locomotion,Ó in Robotics and Automation, 2013. ICRA ’13. IEEE International Conference on, 2013.
+
+\bibitem{dai14} Hongkai Dai, Andrés Valenzuela, and Russ Tedrake. Whole-body motion planning with centroidal dynamics and full kinematics. IEEE-RAS International Conference on Humanoid Robots, 2014. 
+
+\bibitem{hereid14} A Hereid, S Kolathaya, MS Jones, J Van Why, JW Hurst, AD Ames. Dynamic Multi-Domain Bipedal Walking with ATRIAS through SLIP based Human-Inspired Control. Proceedings of the 17th international conference on Hybrid systems: computation and control. 2014.
+
+\bibitem{deits14} Robin L H Deits and Russ Tedrake. Computing large convex regions of obstacle-free space through semidefinite programming. In Proceedings of the Eleventh International Workshop on the Algorithmic Foundations of Robotics (WAFR 2014), Istanbul, 2014.
 
 \end{thebibliography}
 
-
-
+% {\small
+% \bibliographystyle{ieee}
+% \bibliography{egbib}
+% }
 
 \end{document}
