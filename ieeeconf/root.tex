@@ -124,15 +124,30 @@ We employ the same control pipeline as Atlas to generate and execute a walking t
 \end{multiline}
 
 \begin{multiline}
+The following equations describe the center of mass and ZMP dynamics of a fully actuated rigid body system.
 \mathbf{y} = \mathbf{Cx} - b(\mathbf{x},\mathbf{\dotx})\mathbf{u} \\
 = \left[ \begin{array}{cc} \mathbf{I} & 0 \end{array} \right]\] \mathbf{x} - 
 \frac{z_{com}}{\ddot z_{com} + g} \mathbf{Iu}
 \end{multiline}
 
+where $\mathbf{x} = [x_{com},y_{com},\dot x_{com}, \dot y_{com}]^T $, $\mathbf{u} = [\ddot x_{com}, \ddot y_{com}]^T$, and $\mathbf{y} = [x_{zmp},y_{zmp}]^T$, and $z_{com}$ is the center of mass hieght. The QP controller solves for the optimal controls by a solving Linear Quadratic Regulator (LQR) problem with the following Ricatti equation:
+\begin{equation}
+J^\ast(\mathbf{\bar{x}},t) = \mathbf{\bar{x}}^T \mathbf{S \bar{x}} + \mathbf{s_1}(t)^T \mathbf{\bar{x}} + s_0(t)
+\end{equation}
+and linear optimal controller,
+\begin{equation}
+\mathbf{\bar{u}^\ast} = - \mathbf{K}(t)\mathbf{\bar{x}} \\
+= \argmin \mathbf{\bar{y}}(t)^T \mathbf{Q} \mathbf{\bar{y}}(t) + \frac{\partial J^\ast}{\partial \bar{x}} \vert_\mathbf{\bar{x}} \mathbf{\dot \bar{x}}
+\end{equation}
+
+Because of torque limits, $\mathbf{\bar{u}}$ we must minimize the following function
+\begin{equation}
+V(\mathbf{\bar{x}}, \mathbf{\bar{u}},t) = \mathbf{\bar{y}}(t)^T \mathbf{Q} \mathbf{\bar{y}}(t) + \frac{\partial J^\ast}{\partial \bar{x}} \vert_\mathbf{\bar{x}} \mathbf{\dot \bar{x}}
+\end{equation}
 
 \subsection{The QP Controller}
 
-In calculating the joint torques, we use the QP formulation used to control Atlas in Drake and documented in \cite{c1}. At each time step, we solve the quadratic program by minimizing objective function
+To calculate the joint torques, we use the QP formulation used to control Atlas in Drake and documented in \cite{c1}. At each time step, the quadratic program minimizes the following objective function
 
 $$
 V(\bar{\mathbf{x}},\bar{\mathbf{u}},t) + w_{\ddot{\mathbf{q}}} \Vert \ddot{\mathbf{q}}_{des} - \ddot{\mathbf{q}} \Vert ^ 2 + \epsilon \sum\nolimits_{ij} \beta_{ij} ^ 2 + \Vert \eta \Vert ^ 2  \eqno{(1)}
@@ -161,7 +176,7 @@ $$
 
 These constraints ensure that the dynamics and input limits (2 and 4), no-slip contact constraints (3), and contact force constraints (5 and 6) are respected. A more complete discussion of this formulation and the symbols used can be found in \cite{kuindersma13}.
 
-The first term of the objective function $V(\bar{\mathbf{x}},\bar{\mathbf{u}},t)$ is a control Lyapunov 
+The first term of the objective function is determined from the LQR cost-to-go described in the previous section. The second term penalizes errors in the commanded torques. Finally, the third term is related to the friction cone of the contact points of the feet. Minimizing this objective function subject to the constraints gives the optimal torques at each time step. 
 
 \subsection{Testing Efficacy on Point-Footed Robot}
 
