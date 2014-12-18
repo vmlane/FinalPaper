@@ -96,13 +96,6 @@ In creating a control system for ATRIAS, we drew heavily on the ATLAS controller
 
 \section{ALGORITHMIC APPROACH}
 
-   \begin{figure}[thpb]
-      \centering
-      \includegraphics[scale=0.2]{figures/6_832blockdiagram.jpg}
-      \caption{The algorithmic pipeline. For our purposes in simulation, the state estimator is perfect.}
-      \label{pipeline}
-   \end{figure}
-
 \subsection{Pipeline}
 
 We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory.
@@ -148,24 +141,7 @@ To test the efficacy of our control approach at each stage in the process, we fi
 
 \subsection{Modifications to Planned Technical Approach}
 
-We first attempted to ensure that the URDF for ATRIAS was working by starting ATRIAS from an initial position and simulating it with no torque inputs. If successful, ATRIAS bends its knees and falls to the ground. Unfortunately, even after making significant modifications to the 4Bar model of ATRIAS, the model was unable to run passively. We then decided to switch to a simpler model with the 4Bars removed. We again had to make significant modifications to the URDF, including removing coordinate frame that was included in the URDF, adding actuators at the knees, and removing unnecessary links. Initially, we did not attempt to run a balancing controller on ATRIAS, because the initial model was point footed, and therefore the balancing controller would not work. We instead worked on make Atrias walk, we initially attempted to generate the footstep planner using the lower leg as the foot link, but this caused problems with the footstep planner. To allow both the footstep planner and controller to work, we added spheres to each of the lower-leg links to represent feet. In the URDF we added two sphere links for each leg, one for both the pitch and roll degrees of freedom. We also added small (less than 3 cm area) triangular collision groups to each foot, because the footstep planner required a support polygon in order work properly. Even after making these modifications, the footstep planner was unable to generate a footstep plan because unlike Atlas, ATRIAS’s hip doesn’t have freedom to rotate in the yaw direction. We fixed this issue by adding another spherical link and joint ot the foot to allow yaw rotation, which allowed the footstep planner to successfully generate a plan. 
-Once the footstep planner was working, we adjusted the gains and parameters of the QP Controller in order to make ATRIAS walk, however, ATRIAS would immediately begin to fall over. In order to isolate the source of the error, we removed the body motion controllers for the feet and torso, and attempted to make ATRIAS walk by adjusting the IKPD gains.
-
-First, we attempted to make ATRIAS  fall over rigidly by setting the output of the QP Controller and the input to the Ricatti equation to zero and adjusting the IKPD controller gains. No matter how the gains were adjusted ATRIAS would bend its knees each time it fell. Even after making these adjustments, ATRIAS would still fall over immediately.
-
-We then modified the URDF to add actuators to each of the foot joints, to allow the QP controller to control the roll, pitch, and yaw of the foot. This allowed ATRIAS to balance for a longer period of time, but it still fell over before taking a single step. 
-
-Since we could not get the robot to balance with very small triangular support polygons, we modified the contact groups in the URDF so that ATRIAS had large rectangular feet. Now that ATRIAS had feet, we decided to work on making ATRIAS balance, before trying to make it walk. The balancing test drops ATRIAS from a certain height above the ground, and attempts to make ATRIAS balance with its COM at a given location. During this test, we discovered that the URDF had no actuator at the hip, which was causing the balancing controller to fail. After adding the actuator at the hip, the robot still fell over while balancing, but was able to balance without falling over, but the error in COM location was about 15 cm, while less than 2 cm was desired. 
-
-Given that the balancing controller worked for other bipeds, including Atlas and Hubo, we concluded that the failure of the balancing controller was due to problems with the model of the robot. We made further modifications to the URDF by removing actuators that did not move anything when viewed in the inspector and fixing the corresponding joints. This yielded slight (2-3cm) improvements in the error. We then removed the yaw degree of freedom in the foot, which resulted in significant performance improvement. The error was approximately 5 cm, as opposed to 15 cm with this degree of freedom.
-
-\section{PROJECT STATUS}
-
-Due to the time-intensive modifications we had to make to the ATRIAS URDF file, we have not yet been able to create a working QP controller that allows ATRIAS to walk. Currently, we have successfully generated footstep plans and are close to a working balancing controller, but we are currently debugging an issue that prevents both of these processes from successfully operating on the same URDF file. Namely, we can only achieve a reasonable result while balancing when we fix the yaw angle of each of ATRIAS’s feet. At the same time, the footstep planner explicitly plans for each foot’s position in roll, pitch, and yaw, and thus requires ATRIAS to have each of these degrees of freedom: otherwise, ATRIAS must bend its knees and apply strange torques to its hip actuators in order to keep the foot pointed forward, causing ATRIAS to infeasibly lower its center of mass and ultimately fall over.
-
-We are currently evaluating our balancing controller with respect to the threshold used by ATLAS: i.e., we consider ATRIAS “balanced” if it remains within 2 cm of the goal fixed point after 2 s of simulation. While we have not yet been able to remain within this threshold, we have achieved an error of approximately 5 cm. At this point, when ATRIAS is dropped, the torso first leans off to one side, then appears to stabilize very precisely. We hypothesize that by further adjusting the gains to mitigate this oscillation, we can achieve better balancing precision. We are also investigating the possibility that there are still more significant problems with the URDF file that are preventing us from accurately balancing with a fixed foot yaw or from balancing at all with yaw as a DOF. 
-
-\begin{figure*}[t]
+\begin{figure*}[tbp]
   \centering
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -182,9 +158,15 @@ We are currently evaluating our balancing controller with respect to the thresho
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
     \includegraphics[width=\textwidth] {figures/balanceNoYaw3.jpg} 
-    \caption{t=2\\error = 0.0504}
+    \caption{t=2, error = 0.0504}
     \label{fig:balanceNoYaw3}
   \end{subfigure} \\
+  \caption{Results for the balancing controller (without yaw degree of freedom).}
+  \label{fig:balancing}
+\end{figure*}
+
+\begin{figure*}[tbp]
+  \centering
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
         \includegraphics[width=\textwidth] {figures/balanceYaw1.jpg}
@@ -200,13 +182,30 @@ We are currently evaluating our balancing controller with respect to the thresho
     \begin{subfigure}[b]{0.3\textwidth}
       \centering
         \includegraphics[width=\textwidth] {figures/balanceYaw3.jpg}
-        \caption{t=2\\error = 0.4850}
+        \caption{t=2, error = 0.4850}
         \label{fig:balanceYaw3}
     \end{subfigure}
-  \caption{Results for the Balancing Controller. The top row is with no yaw degree of freedom for the ankle, the bottom row is with the yaw dgree of freedom.}
+  \caption{Results for the balancing controller (using yaw degree of freedom).}
   \label{fig:balancing}
 \end{figure*}
 
+
+We first attempted to ensure that the URDF for ATRIAS was working by starting ATRIAS from an initial position and simulating it with no torque inputs. If successful, ATRIAS bends its knees and falls to the ground. Unfortunately, even after making significant modifications to the 4Bar model of ATRIAS, the model was unable to run passively. We then decided to switch to a simpler model with the 4Bars removed. We again had to make significant modifications to the URDF, including removing coordinate frame that was included in the URDF, adding actuators at the knees, and removing unnecessary links. Initially, we did not attempt to run a balancing controller on ATRIAS, because the initial model was point footed, and therefore the balancing controller would not work. We instead worked on make Atrias walk, we initially attempted to generate the footstep planner using the lower leg as the foot link, but this caused problems with the footstep planner. To allow both the footstep planner and controller to work, we added spheres to each of the lower-leg links to represent feet. In the URDF we added two sphere links for each leg, one for both the pitch and roll degrees of freedom. We also added small (less than 3 cm area) triangular collision groups to each foot, because the footstep planner required a support polygon in order work properly. Even after making these modifications, the footstep planner was unable to generate a footstep plan because unlike Atlas, ATRIAS’s hip doesn’t have freedom to rotate in the yaw direction. We fixed this issue by adding another spherical link and joint ot the foot to allow yaw rotation, which allowed the footstep planner to successfully generate a plan. 
+Once the footstep planner was working, we adjusted the gains and parameters of the QP Controller in order to make ATRIAS walk, however, ATRIAS would immediately begin to fall over. In order to isolate the source of the error, we removed the body motion controllers for the feet and torso, and attempted to make ATRIAS walk by adjusting the IKPD gains.
+
+First, we attempted to make ATRIAS  fall over rigidly by setting the output of the QP Controller and the input to the Ricatti equation to zero and adjusting the IKPD controller gains. No matter how the gains were adjusted ATRIAS would bend its knees each time it fell. Even after making these adjustments, ATRIAS would still fall over immediately.
+
+We then modified the URDF to add actuators to each of the foot joints, to allow the QP controller to control the roll, pitch, and yaw of the foot. This allowed ATRIAS to balance for a longer period of time, but it still fell over before taking a single step. 
+
+Since we could not get the robot to balance with very small triangular support polygons, we modified the contact groups in the URDF so that ATRIAS had large rectangular feet. Now that ATRIAS had feet, we decided to work on making ATRIAS balance, before trying to make it walk. The balancing test drops ATRIAS from a certain height above the ground, and attempts to make ATRIAS balance with its COM at a given location. During this test, we discovered that the URDF had no actuator at the hip, which was causing the balancing controller to fail. After adding the actuator at the hip, the robot still fell over while balancing, but was able to balance without falling over, but the error in COM location was about 15 cm, while less than 2 cm was desired. 
+
+Given that the balancing controller worked for other bipeds, including Atlas and Hubo, we concluded that the failure of the balancing controller was due to problems with the model of the robot. We made further modifications to the URDF by removing actuators that did not move anything when viewed in the inspector and fixing the corresponding joints. This yielded slight (2-3cm) improvements in the error. We then removed the yaw degree of freedom in the foot, which resulted in significant performance improvement. The error was approximately 5 cm, as opposed to 15 cm with this degree of freedom.
+
+\section{PROJECT STATUS}
+
+Due to the time-intensive modifications we had to make to the ATRIAS URDF file, we have not yet been able to create a working QP controller that allows ATRIAS to walk. Currently, we have successfully generated footstep plans and are close to a working balancing controller, but we are currently debugging an issue that prevents both of these processes from successfully operating on the same URDF file. Namely, we can only achieve a reasonable result while balancing when we fix the yaw angle of each of ATRIAS’s feet. At the same time, the footstep planner explicitly plans for each foot’s position in roll, pitch, and yaw, and thus requires ATRIAS to have each of these degrees of freedom: otherwise, ATRIAS must bend its knees and apply strange torques to its hip actuators in order to keep the foot pointed forward, causing ATRIAS to infeasibly lower its center of mass and ultimately fall over.
+
+We are currently evaluating our balancing controller with respect to the threshold used by ATLAS: i.e., we consider ATRIAS “balanced” if it remains within 2 cm of the goal fixed point after 2 s of simulation. While we have not yet been able to remain within this threshold, we have achieved an error of approximately 5 cm. At this point, when ATRIAS is dropped, the torso first leans off to one side, then appears to stabilize very precisely. We hypothesize that by further adjusting the gains to mitigate this oscillation, we can achieve better balancing precision. We are also investigating the possibility that there are still more significant problems with the URDF file that are preventing us from accurately balancing with a fixed foot yaw or from balancing at all with yaw as a DOF.
 
 \section{LESSONS LEARNED}
 
