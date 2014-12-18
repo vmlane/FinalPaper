@@ -154,14 +154,16 @@ These constraints ensure that the dynamics and input limits (2 and 4), no-slip c
 In order to work within the existing Drake infrastructure --- which requires 3-DOF feet in order to successfully plan footsteps --- we began by giving ATRIAS large, square feet. This allowed us to get the pipeline up and running without having to completely rewrite the footstep planning algorithm. Since our ultimate goal is a point-footed robot, we will then systematically shrink these feet until the QP controller ceases to work. Pending this strategy’s success, we will in future iterations of the project attempt to modify the planner such that these “dummy” feet become unnecessary.
 
    \begin{figure}[thpb]
-      \centering
-      \includegraphics[scale=0.3]{figures/runPassiveInitial.jpg}
-      \label{footstep}
-   \end{figure}
-
-      \begin{figure}[thpb]
-      \centering
-      \includegraphics[scale=0.3]{figures/runPassiveFinal.jpg}
+      \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{figures/runPassiveInitial.jpg}
+        \caption{t = 0}
+        \label{runPassiveInit}
+      \end{subfigure}
+      \begin{subfigure}[b]{\linewidth}
+        \includegraphics[width=\linewidth]{figures/runPassiveFinal.jpg}
+        \caption{t = 2}
+        \label{runPassiveFinal}
+      \end{subfigure}
       \caption{Initial and final positions of robot in {\tt runPassive}.}
       \label{footstep}
    \end{figure}
