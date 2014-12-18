@@ -86,6 +86,17 @@ For our project, we made use of several URDF files of ATRIAS created by Professo
 
 Researchers at Carnegie Mellon developed a controller for ATRIAS using a spring-mass model (SMM). SMM was chosen to describe ATRIAS's locomotion dynamics because it is a good approximation for the center of mass dynamics of human running. [CITATION]
 
+  \begin{figure*}[tbp]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth] {figures/6_832blockdiagram.jpg}
+    \label{fig:pipeline1}
+  \end{subfigure}\hfill
+  \caption{The algorithmic pipeline.}
+  \label{fig:pipeline}
+\end{figure*}
+
 \subsection{Drake's Atlas Controller}
 
 The MIT Robot Locomotion Group (RLG) has developed a whole body motion planner for Atlas, a humanoid robot designed by Boston Dynamics. ​Instead of using ​the position of the ​ZMP as ​the stability criterion, ​the planner considers the centroidal dynamics of the robot, which is the way the center of mass and angular momentum change over time. The new criterion holds for a broader group of motions than ZMP, including motions with out of plane contacts and motions with flight phases (i.e. running). It characterizes full-body motions by a single quantity --- the robot’s momenta. The current whole body motion planner has enabled Atlas to run in simulation, but only when the actuator limits of the robot are removed. [CITATION Dai, 2014] RLG also developed a Quadratic Program (QP) controller for Atlas, which computes the optimal torques for each joint at each time step given the COM trajectory produced by the whole body motion planner. [CITATION]
@@ -97,6 +108,13 @@ In creating a control system for ATRIAS, we drew heavily on the ATLAS controller
 \section{ALGORITHMIC APPROACH}
 
 \subsection{Pipeline}
+
+   % \begin{figure}[b]
+   %    \centering
+   %    \includegraphics[scale=0.4]{figures/6_832blockdiagram.jpg}
+   %    \caption{The ATRIAS biped.}
+   %    \label{pipeline}
+   % \end{figure}
 
 We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory.
 
