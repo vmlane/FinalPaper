@@ -113,22 +113,14 @@ In creating a control system for ATRIAS, we drew heavily on the Atlas controller
 We employ the same control pipeline as Atlas to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs a set of footstep positions ending at the goal location. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory. \cite{dai14}\cite{deits14}
 
 \subsection{LQR}
-\begin{multiline}
-\dot x = \mathbf{Ax} + \mathbf{Bu} \\
- = \left[ \begin{array}{cc}
-0 & \mathbf{I}  \\
-0 & 0 \end{array} \right]\] 
-\left[ \begin{array}{cc}
-0  \\
-\mathbf{I} \end{array} \right]\] \mathbf{u}
-\end{multiline}
 
-\begin{multiline}
-\mathbf{y} = \mathbf{Cx} - b(\mathbf{x},\mathbf{\dotx})\mathbf{u} \\
-= \left[ \begin{array}{cc} \mathbf{I} & 0 \end{array} \right]\] \mathbf{x} - 
-\frac{z_{com}}{\ddot z_{com} + g} \mathbf{Iu}
-\end{multiline}
+$$
+\begin{array} {lcl} \dot{\mathbf{x}} & = & \mathbf{Ax} + \mathbf{Bu} \\ & = & \left[ \begin{array}{cc} 0 & \mathbf{I}  \\ 0 & 0 \end{array} \right]\] \mathbf{x} + \left[ \begin{array}{cc} 0  \\ \mathbf{I} \end{array} \right]\] \mathbf{u} \end{array}
+$$
 
+$$
+\begin{array} {lcl} \mathbf{y} & = & \mathbf{Cx} - b(\mathbf{x},\dot{\mathbf{x}})\mathbf{u} \\ & = & \left[ \begin{array}{cc} \mathbf{I} & 0 \end{array} \right]\] \mathbf{x} - \frac{z_{com}}{\ddot z_{com} + g} \mathbf{Iu} \end{array}
+$$
 
 \subsection{The QP Controller}
 
@@ -261,16 +253,12 @@ Due to the time-intensive modifications we had to make to the ATRIAS URDF file, 
 
 We are currently evaluating our balancing controller with respect to the threshold used by ATLAS: i.e., we consider ATRIAS “balanced” if it remains within 2 cm of the goal fixed point after 2 s of simulation. While we have not yet been able to remain within this threshold, we have achieved an error of approximately 5 cm. At this point, when ATRIAS is dropped, the torso first leans off to one side, then appears to stabilize very precisely. We hypothesize that by further adjusting the gains to mitigate this oscillation, we can achieve better balancing precision. We are also investigating the possibility that there are still more significant problems with the URDF file that are preventing us from accurately balancing with a fixed foot yaw or from balancing at all with yaw as a DOF.
 
-\section{LESSONS LEARNED}
-
-Lessons learned.
-
 \section{FUTURE WORK}
 Further work will attempt to successfully implement the QP Controller for the ATRIAS biped. In order for ATRIAS walk with feet, it first must be able to balance. As previously stated, allowing the feet to rotate in the yaw direction causes the balancing controller to fail. However, removing this degree of freedom causes the footstep planner to fail. We will modify the simulated ATRIAS model to allow both the balancing controller and the footstep planner to succeed, while still accurately approximating the dynamics of ATRIAS. Once both the balancing controller and footstep planner work, we will adjust the gains and paramaters of the QP controller to make ATRIAS walk over flat terrain. 
 
 After ATRIAS successfully walks with feet, we will incrementally decrease the size of the feet until the controller fails. For each iteration, we will adjust gains and controller parameters to make ATRIAS walk over flat terrain. When the size of the support polygon is negligible, the ATRIAS model will approximate a point-footed robot.
 
-\section{CONCLUSIONS}
+\section{CONCLUSIONS \& LESSONS LEARNED}
 
 Ultimately, we were unable to progress as far toward our goal of creating a QP controller for a point-footed biped as we would have liked. By exploring the the system's failure modes, however, we learned a great deal about the intricacies of each stage in the pipeline, from URDF modeling, to footstep planning, to the QP controller itself. We gained significant intuition for what might cause a controller to fail, and we look forward to continuing this project over IAP.
 
