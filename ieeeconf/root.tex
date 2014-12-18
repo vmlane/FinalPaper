@@ -90,7 +90,7 @@ Researchers at Carnegie Mellon developed a controller for ATRIAS using a spring-
   \centering
   \begin{subfigure}[b]{0.7\textwidth}
     \centering
-    \includegraphics[width=\textwidth] {figures/6_832blockdiagram.jpg}
+    \includegraphics[width=\textwidth] {figures/6_832blockdiagramsmall.jpg}
     \label{fig:pipeline1}
   \end{subfigure}\hfill
   \caption{The algorithmic pipeline.}
@@ -109,10 +109,7 @@ In creating a control system for ATRIAS, we drew heavily on the ATLAS controller
 
 \subsection{Pipeline}
 
-We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory.
-=======
 We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory. \cite{dai14}\cite{deits14}
->>>>>>> b27cc05648d448ba095718b2d931f4058a2c4fff
 
 \subsection{The QP Controller}
 
