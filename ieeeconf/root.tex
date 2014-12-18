@@ -63,7 +63,7 @@ An agile biped robot capable of walking and running over rough terrain has a wid
 
 \section{MOTIVATION}
 
-A Quadratic Program (QP) Controller uses the Zero Moment Point (ZMP) stability criterion. There is debate in the robotics community about whether or not the ZMP stability criterion will work for a point footed-biped, since there is no support polygon. We aim to prove that the ZMP stability criterion is an valid for a point-footed biped by developing a QP controller for ATRIAS, which will enable it to execute walking trajectories over flat terrain.
+A Quadratic Program (QP) Controller uses the Zero Moment Point (ZMP) stability criterion.  The ZMP is a point on the ground where the reaction forces from the contact points of the feet on the ground produce no horizontal moment. In other words, the ground and inertial forces sum horizontally to zero and the moment produced by these forces is perpendicular to the ground plane. Furthermore, ZMP assumes that at least one foot is on the ground at all times. There is debate in the robotics community about whether or not the ZMP stability criterion will work for a point footed-biped, since there is no support polygon. We aim to prove that the ZMP stability criterion is an valid for a point-footed biped by developing a QP controller for ATRIAS, which will enable it to execute walking trajectories over flat terrain.
 
 For our project, we chose to test the efficacy of a QP controller on the ATRIAS biped, a point-footed robot that is highly articulated enough to merit such a sophisticated control system. We chose ATRIAS due both to its similarities to Atlas --- as they are both bipeds with a sophisticated, non-flat-footed gait --- and because we had access to the existing URDF files to describe the robot.
 
@@ -83,7 +83,7 @@ The ATRIAS biped --- short for ``Assume The Robot Is A Sphere,'' a design paradi
 The ATRIAS robot has 6 actuators and 13 degrees of freedom --- thus, it is highly underactuated. The robot is designed as a Spring Mass Loaded Inverted Pendulum (SLIP).
 For our project, we made use of several URDF files of ATRIAS created by Professor Grizzle when he visited MIT. As discussed below, we made extensive modifications to these files, including the removal of several linkages and the addition of actuators.
 
-\subsection{Previous Approaches}
+\subsection{Previous Controllers}
 
 In addition to Professor Jessy Grizzle's work at the University of Michigan, a number of other research groups have sought to develop ATRIAS control systems. Researchers at Carnegie Mellon University, for instance, are currently working to develop a controller for ATRIAS using a spring-mass model (SMM). SMM was chosen to describe ATRIAS's locomotion dynamics because it is a good approximation for the center of mass dynamics of human running. \cite{hereid14} The group has achieved some success in controlling ATRIAS over rough terrain at a slow hopping gait and is currently working toward fast running; their current obstacles to a functional system are measurement noise sensitivity and motor torque saturations. Our project, on the other hand, will model ATRIAS completely differently, and concentrate on achieving a functional walking gait rather than a running gait with an aerial phase.
 
@@ -100,17 +100,35 @@ In addition to Professor Jessy Grizzle's work at the University of Michigan, a n
 
 \subsection{Drake's Atlas Controller}
 
-The MIT Robot Locomotion Group (RLG) has developed a whole body motion planner for Atlas, a humanoid robot designed by Boston Dynamics. ​Instead of using ​the position of the ​ZMP as ​the stability criterion, ​the planner considers the centroidal dynamics of the robot, which is the way the center of mass and angular momentum change over time. The new criterion holds for a broader group of motions than ZMP, including motions with out of plane contacts and motions with flight phases (i.e. running). It characterizes full-body motions by a single quantity --- the robot’s momenta. The current whole body motion planner has enabled Atlas to run in simulation, but only when the actuator limits of the robot are removed. \cite{dai14} RLG also developed a Quadratic Program (QP) controller for Atlas, which computes the optimal torques for each joint at each time step given the COM trajectory produced by the whole body motion planner. \cite{kuindersma13}
+The MIT Robot Locomotion Group (RLG) has developed a walking trajectory planner for Atlas, a humanoid robot designed by Boston Dynamics. The planner uses ZMP as ​the stability criterion. The ZMP trajectory planner was enabled Atlas to walk, but the stability criterion assume that Atlas's center of mass remained at a constant heigh or slope. \cite{dai14} MIT's RLG developed a Quadratic Program (QP) controller for Atlas, which computes the optimal torques for each joint at each time step given the COM trajectory produced by the whole body motion planner. \cite{kuindersma13}
 
 The QP controller is a whole-body controller that uses a convex quadratic program. It solves an optimal control problem while maintaining input, contact, no-slip, and dynamic constraints. As previously stated, maintaining the ZMP ensures dynamic stability. Given the ZMP trajectory, the time-varying LQR yields the optimal cost-to-go for a simplified model. This function is then passed to the quadratic program which solves for all torque inputs for the robot dynamics.
 
-In creating a control system for ATRIAS, we drew heavily on the ATLAS controller and walking planner already implemented in the Drake library. Our specific modifications to the code to make it work with ATRIAS are described below.
+In creating a control system for ATRIAS, we drew heavily on the Atlas controller and walking planner already implemented in the Drake library \cite{c1}. Our specific modifications to the code for the ATRIAS model are described below.
 
 \section{ALGORITHMIC APPROACH}
 
 \subsection{Pipeline}
 
-We employ the same control pipeline as ATLAS to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs the (2D?) positions of each foot based on ATRIAS’s kinematics. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory. \cite{dai14}\cite{deits14}
+We employ the same control pipeline as Atlas to generate and execute a walking trajectory. We first generate a robot model, goal location and (flat) terrain map. These then become the inputs to the footstep planner, which outputs a set of footstep positions ending at the goal location. This plan is then analyzed by the ZMP trajectory planner, which uses inverse kinematics to calculate the trajectory of the robot’s zero-moment point. This trajectory is then passed into the QP controller, which calculates the required torques at each of ATRIAS’s actuators at each time step. This controller is then tested on the robot in simulation to determine whether it allows the robot to successfully execute the planned trajectory. \cite{dai14}\cite{deits14}
+
+\subsection{LQR}
+\begin{multiline}
+\dot x = \mathbf{Ax} + \mathbf{Bu} \\
+ = \left[ \begin{array}{cc}
+0 & \mathbf{I}  \\
+0 & 0 \end{array} \right]\] 
+\left[ \begin{array}{cc}
+0  \\
+\mathbf{I} \end{array} \right]\] \mathbf{u}
+\end{multiline}
+
+\begin{multiline}
+\mathbf{y} = \mathbf{Cx} - b(\mathbf{x},\mathbf{\dotx})\mathbf{u} \\
+= \left[ \begin{array}{cc} \mathbf{I} & 0 \end{array} \right]\] \mathbf{x} - 
+\frac{z_{com}}{\ddot z_{com} + g} \mathbf{Iu}
+\end{multiline}
+
 
 \subsection{The QP Controller}
 
@@ -142,6 +160,8 @@ $$
 $$
 
 These constraints ensure that the dynamics and input limits (2 and 4), no-slip contact constraints (3), and contact force constraints (5 and 6) are respected. A more complete discussion of this formulation and the symbols used can be found in \cite{kuindersma13}.
+
+The first term of the objective function $V(\bar{\mathbf{x}},\bar{\mathbf{u}},t)$ is a control Lyapunov 
 
 \subsection{Testing Efficacy on Point-Footed Robot}
 
