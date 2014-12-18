@@ -16,6 +16,7 @@
 
 % The following packages can be found on http:\\www.ctan.org
 \usepackage{graphicx} % for pdf, bitmapped graphics files
+\usepackage{subcaption}
 %\usepackage{epsfig} % for postscript graphics files
 %\usepackage{mathptmx} % assumes new font selection scheme installed
 %\usepackage{times} % assumes new font selection scheme installed
@@ -163,6 +164,49 @@ Given that the balancing controller worked for other bipeds, including Atlas and
 Due to the time-intensive modifications we had to make to the ATRIAS URDF file, we have not yet been able to create a working QP controller that allows ATRIAS to walk. Currently, we have successfully generated footstep plans and are close to a working balancing controller, but we are currently debugging an issue that prevents both of these processes from successfully operating on the same URDF file. Namely, we can only achieve a reasonable result while balancing when we fix the yaw angle of each of ATRIAS’s feet. At the same time, the footstep planner explicitly plans for each foot’s position in roll, pitch, and yaw, and thus requires ATRIAS to have each of these degrees of freedom: otherwise, ATRIAS must bend its knees and apply strange torques to its hip actuators in order to keep the foot pointed forward, causing ATRIAS to infeasibly lower its center of mass and ultimately fall over.
 
 We are currently evaluating our balancing controller with respect to the threshold used by ATLAS: i.e., we consider ATRIAS “balanced” if it remains within 2 cm of the goal fixed point after 2 s of simulation. While we have not yet been able to remain within this threshold, we have achieved an error of approximately 5 cm. At this point, when ATRIAS is dropped, the torso first leans off to one side, then appears to stabilize very precisely. We hypothesize that by further adjusting the gains to mitigate this oscillation, we can achieve better balancing precision. We are also investigating the possibility that there are still more significant problems with the URDF file that are preventing us from accurately balancing with a fixed foot yaw or from balancing at all with yaw as a DOF. 
+
+\begin{figure*}[t]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth] {figures/balanceNoYaw1.jpg}
+    \caption{t=0}
+    \label{fig:balanceNoYaw1}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth] {figures/balanceNoYaw2.jpg} 
+    \caption{t=1.4}
+    \label{fig:balanceNoYaw2}
+  \end{subfigure}\hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth] {figures/balanceNoYaw3.jpg} 
+    \caption{t=2\\error = 0.0504}
+    \label{fig:balanceNoYaw3}
+  \end{subfigure} \\
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+        \includegraphics[width=\textwidth] {figures/balanceYaw1.jpg}
+        \caption{t=0}
+    \label{fig:balanceYaw1}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+        \includegraphics[width=\textwidth] {figures/balanceYaw2.jpg}
+        \caption{t=1.2}
+        \label{fig:balanceYaw2}
+    \end{subfigure} \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+      \centering
+        \includegraphics[width=\textwidth] {figures/balanceYaw3.jpg}
+        \caption{t=2\\error = 0.4850}
+        \label{fig:balanceYaw3}
+    \end{subfigure}
+  \caption{Results for the Balancing Controller. The top row is with no yaw degree of freedom for the ankle, the bottom row is with the yaw dgree of freedom.}
+  \label{fig:balancing}
+\end{figure*}
+
 
 \section{LESSONS LEARNED}
 
