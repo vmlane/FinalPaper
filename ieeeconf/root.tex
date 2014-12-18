@@ -114,57 +114,63 @@ We employ the same control pipeline as Atlas to generate and execute a walking t
 
 \subsection{LQR}
 
+We can model the center of mass and zero-moment point dynamics of a fully-actuated rigid-body system as
+
 $$
-\begin{array} {lcl} \dot{\mathbf{x}} & = & \mathbf{Ax} + \mathbf{Bu} \\ & = & \left[ \begin{array}{cc} 0 & \mathbf{I}  \\ 0 & 0 \end{array} \right]\] \mathbf{x} + \left[ \begin{array}{cc} 0  \\ \mathbf{I} \end{array} \right]\] \mathbf{u} \end{array}
+\begin{array} {lcl} \dot{\mathbf{x}} & = & \mathbf{Ax} + \mathbf{Bu} \\ & = & \left[ \begin{array}{cc} 0 & \mathbf{I}  \\ 0 & 0 \end{array} \right]\] \mathbf{x} + \left[ \begin{array}{cc} 0  \\ \mathbf{I} \end{array} \right]\] \mathbf{u} \end{array} \eqno{(1)}
 $$
 
 $$
-\begin{array} {lcl} \mathbf{y} & = & \mathbf{Cx} - b(\mathbf{x},\dot{\mathbf{x}})\mathbf{u} \\ & = & \left[ \begin{array}{cc} \mathbf{I} & 0 \end{array} \right]\] \mathbf{x} - \frac{z_{com}}{\ddot z_{com} + g} \mathbf{Iu} \end{array}
+\begin{array} {lcl} \mathbf{y} & = & \mathbf{Cx} - b(\mathbf{x},\dot{\mathbf{x}})\mathbf{u} \\ & = & \left[ \begin{array}{cc} \mathbf{I} & 0 \end{array} \right]\] \mathbf{x} - \frac{z_{com}}{\ddot z_{com} + g} \mathbf{Iu} \end{array} \eqno{(2)}
+$$
+
+where $\mathbf{x} = [x_{com},y_{com},\dot x_{com}, \dot y_{com}]^T $, $\mathbf{u} = [\ddot x_{com}, \ddot y_{com}]^T$, and $\mathbf{y} = [x_{zmp},y_{zmp}]^T$, and $z_{com}$ is the center of mass hieght. The QP controller solves for the optimal controls by a solving Linear Quadratic Regulator (LQR) problem with the following Ricatti equation:
+$$
+J^\ast(\mathbf{\bar{x}},t) = \mathbf{\bar{x}}^T \mathbf{S \bar{x}} + \mathbf{s_1}(t)^T \mathbf{\bar{x}} + s_0(t) \eqno{(3)}
+$$
+and linear optimal controller,
+$$
+\mathbf{\bar{u}^\ast} = - \mathbf{K}(t)\mathbf{\bar{x}} \\
+= \argmin \mathbf{\bar{y}}(t)^T \mathbf{Q} \mathbf{\bar{y}}(t) + \frac{\partial J^\ast}{\partial \bar{x}} \vert_\mathbf{\bar{x}} \mathbf{\dot \bar{x}} \eqno{(4)}
+$$
+
+Because of torque limits, $\mathbf{\bar{u}}$ we must minimize the following function
+$$
+V(\mathbf{\bar{x}}, \mathbf{\bar{u}},t) = \mathbf{\bar{y}}(t)^T \mathbf{Q} \mathbf{\bar{y}}(t) + \frac{\partial J^\ast}{\partial \bar{x}} \vert_\mathbf{\bar{x}} \mathbf{\dot \bar{x}} \eqno{(5)}
 $$
 
 \subsection{The QP Controller}
 
-In calculating the joint torques, we use the QP formulation used to control Atlas in Drake and documented in \cite{c1}. At each time step, we solve the quadratic program by minimizing objective function
+To calculate the joint torques, we use the QP formulation used to control Atlas in Drake and documented in \cite{c1}. At each time step, the quadratic program minimizes the following objective function
 
 $$
-V(\bar{\mathbf{x}},\bar{\mathbf{u}},t) + w_{\ddot{\mathbf{q}}} \Vert \ddot{\mathbf{q}}_{des} - \ddot{\mathbf{q}} \Vert ^ 2 + \epsilon \sum\nolimits_{ij} \beta_{ij} ^ 2 + \Vert \eta \Vert ^ 2  \eqno{(1)}
+V(\bar{\mathbf{x}},\bar{\mathbf{u}},t) + w_{\ddot{\mathbf{q}}} \Vert \ddot{\mathbf{q}}_{des} - \ddot{\mathbf{q}} \Vert ^ 2 + \epsilon \sum\nolimits_{ij} \beta_{ij} ^ 2 + \Vert \eta \Vert ^ 2  \eqno{(6)}
 $$
 
 over $\ddot{q}$, $\beta$, $\lambda$, and $\eta$ subject to
 
 $$
-\mathbf{H}_{f} \ddot{\mathbf{q}} + \mathbf{C}_{f} = \Phi_{f} ^ T \lambda \eqno{(2)}
+\mathbf{H}_{f} \ddot{\mathbf{q}} + \mathbf{C}_{f} = \Phi_{f} ^ T \lambda \eqno{(7)}
 $$
 $$
-\mathbf{J} \ddot{\mathbf{q}} + \dot{\mathbf{J}} \dot{\mathbf{q}} = - \alpha \mathbf{J} \dot{\mathbf{q}} + \eta \eqno{(3)}
+\mathbf{J} \ddot{\mathbf{q}} + \dot{\mathbf{J}} \dot{\mathbf{q}} = - \alpha \mathbf{J} \dot{\mathbf{q}} + \eta \eqno{(8)}
 $$
 $$
-\mathbf{B}_{a} ^ {-1} (\mathbf{H}_{a} \ddot{\mathbf{q}} + \mathbf{C}_{a} - \Phi_{a} ^ T \lambda) \in [\tau_{min}, \tau_{max}] \eqno{(4)}
+\mathbf{B}_{a} ^ {-1} (\mathbf{H}_{a} \ddot{\mathbf{q}} + \mathbf{C}_{a} - \Phi_{a} ^ T \lambda) \in [\tau_{min}, \tau_{max}] \eqno{(9)}
 $$
 $$
-\forall_{j = \{1 . . . N_{c}\}} \lambda_{j} = \sum\limits_{i=1}^{N_d} \beta_{ij} \mathbf{v}_{ij} \eqno{(5)}
+\forall_{j = \{1 . . . N_{c}\}} \lambda_{j} = \sum\limits_{i=1}^{N_d} \beta_{ij} \mathbf{v}_{ij} \eqno{(10)}
 $$
 $$
-\forall_{i,j} \beta_{ij} \geq 0 \eqno{(6)}
+\forall_{i,j} \beta_{ij} \geq 0 \eqno{(11)}
 $$
 $$
-\eta \in [\tau_{min}, \tau_{max}] \eqno{(7)}
+\eta \in [\tau_{min}, \tau_{max}] \eqno{(12)}
 $$
 
-These constraints ensure that the dynamics and input limits (2 and 4), no-slip contact constraints (3), and contact force constraints (5 and 6) are respected. A more complete discussion of this formulation and the symbols used can be found in \cite{kuindersma13}.
+These constraints ensure that the dynamics and input limits (7 and 9), no-slip contact constraints (8), and contact force constraints (10 and 11) are respected. A more complete discussion of this formulation and the symbols used can be found in \cite{kuindersma13}.
 
-The first term of the objective function $V(\bar{\mathbf{x}},\bar{\mathbf{u}},t)$ is a control Lyapunov 
-
-\subsection{Testing Efficacy on Point-Footed Robot}
-
-   \begin{figure}[thpb]
-      \centering
-      \includegraphics[scale=0.5]{figures/footstep_plan.jpg}
-      \caption{An example footstep plan generated by the footstep planning block. The block takes in the robot parameters, a goal location, and a terrain map, and generates the $xy$-positions of each footstep.}
-      \label{footstep}
-   \end{figure}
-
-In order to work within the existing Drake infrastructure --- which requires 3-DOF feet in order to successfully plan footsteps --- we began by giving ATRIAS large, square feet. This allowed us to get the pipeline up and running without having to completely rewrite the footstep planning algorithm. Since our ultimate goal is a point-footed robot, we will then systematically shrink these feet until the QP controller ceases to work. Pending this strategy’s success, we will in future iterations of the project attempt to modify the planner such that these “dummy” feet become unnecessary.
+The first term of the objective function is determined from the LQR cost-to-go described in the previous section. The second term penalizes errors in the commanded torques. Finally, the third term is related to the friction cone of the contact points of the feet. Minimizing this objective function subject to the constraints gives the optimal torques at each time step.\cite{kuindersma13} 
 
    \begin{figure}[thpb]
       \begin{subfigure}[b]{\linewidth}
@@ -181,11 +187,30 @@ In order to work within the existing Drake infrastructure --- which requires 3-D
       \label{footstep}
    \end{figure}
 
+
+
+In order to work within the existing Drake infrastructure --- which requires 3-DOF feet in order to successfully plan footsteps --- we began by giving ATRIAS large, square feet. This allowed us to get the pipeline up and running without having to completely rewrite the footstep planning algorithm. Since our ultimate goal is a point-footed robot, we will then systematically shrink these feet until the QP controller ceases to work. Pending this strategy’s success, we will in future iterations of the project attempt to modify the planner such that these “dummy” feet become unnecessary.
+
+\subsection{Testing Efficacy on Point-Footed Robot}
+
+   \begin{figure}[thpb]
+      \centering
+      \includegraphics[scale=0.5]{figures/footstep_plan.jpg}
+      \caption{An example footstep plan generated by the footstep planning block. The block takes in the robot parameters, a goal location, and a terrain map, and generates the $xy$-positions of each footstep.}
+      \label{footstep}
+   \end{figure}
+
 \subsection{Subgoals and Planned Technical Approach}
 
 To test the efficacy of our control approach at each stage in the process, we first planned to modify the ATRIAS URDF file to successfully run in simulation and ensure that all joint limits were reasonable. We then planned to use {\tt runPassive} to confirm that the robot ragdolls as expected when dropped. Once this was achieved, we planned to first work to use our QP controller to balance the footed ATRIAS, then confirm that we can generate a footstep plan and ZMP trajectory, and test our controller on the resulting trajectory. We then planned explore how small we can make ATRIAS's feet, as stated above.
 
 \subsection{Modifications to Planned Technical Approach}
+
+
+We first attempted to ensure that the URDF for ATRIAS was working by starting ATRIAS from an initial position and simulating it with no torque inputs. If successful, ATRIAS bends its knees and falls to the ground. Unfortunately, even after making significant modifications to the 4Bar model of ATRIAS, the model was unable to run passively. We then decided to switch to a simpler model with the 4Bars removed. We again had to make significant modifications to the URDF, including removing coordinate frame that was included in the URDF, adding actuators at the knees, and removing unnecessary links. Initially, we did not attempt to run a balancing controller on ATRIAS, because the initial model was point footed, and therefore the balancing controller would not work. We instead worked on make Atrias walk, we initially attempted to generate the footstep planner using the lower leg as the foot link, but this caused problems with the footstep planner. To allow both the footstep planner and controller to work, we added spheres to each of the lower-leg links to represent feet. In the URDF we added two sphere links for each leg, one for both the pitch and roll degrees of freedom. We also added small (less than 3 cm area) triangular collision groups to each foot, because the footstep planner required a support polygon in order work properly. Even after making these modifications, the footstep planner was unable to generate a footstep plan because unlike Atlas, ATRIAS’s hip doesn’t have freedom to rotate in the yaw direction. We fixed this issue by adding another spherical link and joint ot the foot to allow yaw rotation, which allowed the footstep planner to successfully generate a plan. 
+Once the footstep planner was working, we adjusted the gains and parameters of the QP Controller in order to make ATRIAS walk, however, ATRIAS would immediately begin to fall over. In order to isolate the source of the error, we removed the body motion controllers for the feet and torso, and attempted to make ATRIAS walk by adjusting the IKPD gains.
+
+First, we attempted to make ATRIAS  fall over rigidly by setting the output of the QP Controller and the input to the Ricatti equation to zero and adjusting the IKPD controller gains. No matter how the gains were adjusted ATRIAS would bend its knees each time it fell. Even after making these adjustments, ATRIAS would still fall over immediately.
 
 \begin{figure*}[tbp]
   \centering
@@ -234,12 +259,6 @@ To test the efficacy of our control approach at each stage in the process, we fi
   \caption{Results for the balancing controller when ATRIAS's ankle has a yaw degree of freedom. At 2s, the robot begins to fall over.}
   \label{fig:balancing}
 \end{figure*}
-
-
-We first attempted to ensure that the URDF for ATRIAS was working by starting ATRIAS from an initial position and simulating it with no torque inputs. If successful, ATRIAS bends its knees and falls to the ground. Unfortunately, even after making significant modifications to the 4Bar model of ATRIAS, the model was unable to run passively. We then decided to switch to a simpler model with the 4Bars removed. We again had to make significant modifications to the URDF, including removing coordinate frame that was included in the URDF, adding actuators at the knees, and removing unnecessary links. Initially, we did not attempt to run a balancing controller on ATRIAS, because the initial model was point footed, and therefore the balancing controller would not work. We instead worked on make Atrias walk, we initially attempted to generate the footstep planner using the lower leg as the foot link, but this caused problems with the footstep planner. To allow both the footstep planner and controller to work, we added spheres to each of the lower-leg links to represent feet. In the URDF we added two sphere links for each leg, one for both the pitch and roll degrees of freedom. We also added small (less than 3 cm area) triangular collision groups to each foot, because the footstep planner required a support polygon in order work properly. Even after making these modifications, the footstep planner was unable to generate a footstep plan because unlike Atlas, ATRIAS’s hip doesn’t have freedom to rotate in the yaw direction. We fixed this issue by adding another spherical link and joint ot the foot to allow yaw rotation, which allowed the footstep planner to successfully generate a plan. 
-Once the footstep planner was working, we adjusted the gains and parameters of the QP Controller in order to make ATRIAS walk, however, ATRIAS would immediately begin to fall over. In order to isolate the source of the error, we removed the body motion controllers for the feet and torso, and attempted to make ATRIAS walk by adjusting the IKPD gains.
-
-First, we attempted to make ATRIAS  fall over rigidly by setting the output of the QP Controller and the input to the Ricatti equation to zero and adjusting the IKPD controller gains. No matter how the gains were adjusted ATRIAS would bend its knees each time it fell. Even after making these adjustments, ATRIAS would still fall over immediately.
 
 We then modified the URDF to add actuators to each of the foot joints, to allow the QP controller to control the roll, pitch, and yaw of the foot. This allowed ATRIAS to balance for a longer period of time, but it still fell over before taking a single step. 
 
